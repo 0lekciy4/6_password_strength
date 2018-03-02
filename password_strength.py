@@ -44,9 +44,9 @@ def get_password_strength(password):
         check_in_patterns(password),
         check_len(password),
     ]
-    for i in check_password:
-        if i is not None:
-            password_strength += i
+    for check_weight in check_password:
+        if check_weight is not None:
+            password_strength += check_weight
     return password_strength
 
 
