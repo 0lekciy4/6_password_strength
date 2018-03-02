@@ -1,5 +1,3 @@
-# [TODO] отправлять введенные пароли
-
 import re
 from getpass import getpass
 
@@ -54,4 +52,5 @@ def get_password_strength(password):
 
 if __name__ == '__main__':
     password = getpass('Input your password for check strenght:')
-    print('Password strength = {}'.format(get_password_strength(password)))
+    password_strength = get_password_strength(password)
+    print('Password strength = {}'.format(password_strength))
