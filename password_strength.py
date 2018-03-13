@@ -1,56 +1,164 @@
-import re
 from getpass import getpass
+import re
 
 
-def load_bad_passwords(file_path):
-    with open(file_path, 'r') as file_handler:
-        return file_handler.read().split(sep='\n')
+class PasswordValidator(object):
+    def __init__(self, password):
+        self.password = password
+        self.warnings = []
+        self.validators = []
+        self.weight = 0
+
+    def validate(self):
+        self.weight, self.warnings = 0, []
+        for password_validator in self.validators:
+            if password_validator.validate():
+                self.weight += password_validator.weight
+            else:
+                self.warnings.append(password_validator.warning())
+        return self.weight
+
+    def add_validators(self, *args):
+        for password_validator in args:
+            self.validators.append(
+                password_validator(self.password)
+            )
+
+    def __str__(self):
+        return '<PasswordValidator>: {}'.format(self.password)
+
+    def has_warnings(self):
+        return True if len(self.warnings) > 0 else False
+
+    def show_warnings(self):
+        for warning in self.warnings:
+            print(warning)
 
 
-def check_in_bad_passwords_list(password):
-    bad_passwords_list = load_bad_passwords('bad_passwords.txt')
-    if password.lower() not in bad_passwords_list:  # т.к. в словаре только строчные символы
-        return 1
-    return -3
+class ValidatorType(object):
+    def __init__(self, password):
+        self.weight = 1
+        self.password = password
+
+    def get_weight(self):
+        return self.weight
 
 
-def check_in_patterns(password):
-    password_in_pattern = 0
-    for pattern in ('[a-z]', '[A-Z]', '\d', '\W'):
-        if re.findall(pattern, password):
-            password_in_pattern += 1
-    return password_in_pattern
+class IsNotEmpty(ValidatorType):
+    def validate(self):
+        return True if self.password else False
+
+    @staticmethod
+    def warning():
+        return 'The password cannot be empty'
 
 
-def check_len(password):
-    if len(password) >= 8:
-        return 4
-    elif len(password) >= 6:
-        return 2
-    else:
-        return -2
+class IsMinLen(ValidatorType):
+    def validate(self):
+        return True if len(self.password) >= 6 else False
+
+    @staticmethod
+    def warning():
+        return 'The password should be more than 5 symbols'
 
 
-def check_for_duplicate_characters(password):
-    if len(password) == len(set(password)):
-        return 1
+class IsGoodLen(ValidatorType):
+    def validate(self):
+        return True if len(self.password) >= 8 else False
+
+    @staticmethod
+    def warning():
+        return 'The password is less than eight characters'
 
 
-def get_password_strength(password):
-    password_strength = 0
-    check_password = [
-        check_for_duplicate_characters(password),
-        check_in_bad_passwords_list(password),
-        check_in_patterns(password),
-        check_len(password),
-    ]
-    for check_weight in check_password:
-        if check_weight is not None:
-            password_strength += check_weight
-    return password_strength
+class IsDuplicateCharacters(ValidatorType):
+    def validate(self):
+        return True if len(self.password) == len(set(self.password)) else False
+
+    @staticmethod
+    def warning():
+        return 'The password has duplicate characters'
+
+
+class IsUpperExist(ValidatorType):
+    def validate(self):
+        return True if re.search('[A-Z]', self.password) else False
+
+    @staticmethod
+    def warning():
+        return 'Add please some symbols in upper register'
+
+
+class IsLowerExist(ValidatorType):
+    def validate(self):
+        return True if re.search('[a-z]', self.password) else False
+
+    @staticmethod
+    def warning():
+        return 'Add please some symbols in lower register'
+
+
+class IsDigitExist(ValidatorType):
+    def validate(self):
+        return True if re.search('[\d]', self.password) else False
+
+    @staticmethod
+    def warning():
+        return 'Add please some didgit'
+
+
+class IsSymbolExist(ValidatorType):
+    def validate(self):
+        return True if re.search('[\W]', self.password) else False
+
+    @staticmethod
+    def warning():
+        return 'Add please some symbol'
+
+
+class CheckPasswInBadList(ValidatorType):
+    def __init__(self, password):
+        self.password = password
+        self.weight = 2
+        self.file_path = 'bad_passwords.txt'
+        self.bad_passwords = self.load_bad_passwords()
+
+    def load_bad_passwords(self):
+        try:
+            with open(self.file_path, 'r') as file_handler:
+                return file_handler.read().split(sep='\n')
+        except FileNotFoundError:
+            return None
+
+    def validate(self):
+        if self.bad_passwords:
+            return True if self.password.lower() not in self.bad_passwords else False
+
+    def warning(self):
+        if self.bad_passwords:
+            return 'Password in bad passwords list'
+        else:
+            return 'File bad_passwords.txt Not Found'
+
+
+def main():
+    validator = PasswordValidator(getpass())
+    validator.add_validators(
+        IsNotEmpty,
+        IsMinLen,
+        IsGoodLen,
+        IsDuplicateCharacters,
+        IsUpperExist,
+        IsLowerExist,
+        IsDigitExist,
+        IsSymbolExist,
+        CheckPasswInBadList
+    )
+    rate = validator.validate()
+    print('Your password rate is {}'.format(rate))
+    if validator.has_warnings():
+        validator.show_warnings()
 
 
 if __name__ == '__main__':
-    password = getpass('Input your password for check strenght:')
-    password_strength = get_password_strength(password)
-    print('Password strength = {}'.format(password_strength))
+    main()
