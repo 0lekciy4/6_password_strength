@@ -5,8 +5,16 @@ Example run:
 
 ```bash
 $ python3 password_strength.py
-Input your password for check strenght:
-Password strength = 10
+Password:
+Your password rate is 3
+The password cannot be empty
+The password should be more than 5 symbols
+The password is less than eight characters
+Add please some symbols in upper register
+Add please some symbols in lower register
+Add please some didgit
+Add please some symbol
+
 ```
 
 Password is evaluated by:
