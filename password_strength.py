@@ -1,8 +1,8 @@
-from getpass import getpass
 import re
+from getpass import getpass
 
 
-class PasswordValidator(object):
+class PasswordValidator:
     def __init__(self, password):
         self.password = password
         self.warnings = []
@@ -21,21 +21,21 @@ class PasswordValidator(object):
     def add_validators(self, *args):
         for password_validator in args:
             self.validators.append(
-                password_validator(self.password)
+                password_validator(self.password),
             )
 
     def __str__(self):
         return '<PasswordValidator>: {}'.format(self.password)
 
     def has_warnings(self):
-        return True if len(self.warnings) > 0 else False
+        return len(self.warnings) > 0
 
     def show_warnings(self):
         for warning in self.warnings:
             print(warning)
 
 
-class ValidatorType(object):
+class BaseValidator:
     def __init__(self, password):
         self.weight = 1
         self.password = password
@@ -44,79 +44,81 @@ class ValidatorType(object):
         return self.weight
 
 
-class IsNotEmpty(ValidatorType):
+class NotEmptyChecker(BaseValidator):
     def validate(self):
-        return True if self.password else False
+        return bool(self.password)
 
     @staticmethod
     def warning():
         return 'The password cannot be empty'
 
 
-class IsMinLen(ValidatorType):
+class MinLenChecker(BaseValidator):
     def validate(self):
-        return True if len(self.password) >= 6 else False
+        self.min_len = 6
+        return len(self.password) >= self.min_len
 
     @staticmethod
     def warning():
         return 'The password should be more than 5 symbols'
 
 
-class IsGoodLen(ValidatorType):
+class GoodLenChecker(BaseValidator):
     def validate(self):
-        return True if len(self.password) >= 8 else False
+        self.good_len = 8
+        return len(self.password) >= self.good_len
 
     @staticmethod
     def warning():
         return 'The password is less than eight characters'
 
 
-class IsDuplicateCharacters(ValidatorType):
+class DuplicateCharactersChecker(BaseValidator):
     def validate(self):
-        return True if len(self.password) == len(set(self.password)) else False
+        return len(self.password) == len(set(self.password))
 
     @staticmethod
     def warning():
         return 'The password has duplicate characters'
 
 
-class IsUpperExist(ValidatorType):
+class UpperExistChecker(BaseValidator):
     def validate(self):
-        return True if re.search('[A-Z]', self.password) else False
+        return bool(re.search('[A-Z]', self.password))
 
     @staticmethod
     def warning():
         return 'Add please some symbols in upper register'
 
 
-class IsLowerExist(ValidatorType):
+class LowerExistChecker(BaseValidator):
     def validate(self):
-        return True if re.search('[a-z]', self.password) else False
+        return bool(re.search('[a-z]', self.password))
 
     @staticmethod
     def warning():
         return 'Add please some symbols in lower register'
 
 
-class IsDigitExist(ValidatorType):
+class DigitExistChecker(BaseValidator):
     def validate(self):
-        return True if re.search('[\d]', self.password) else False
+        return bool(re.search('[\d]', self.password))
 
     @staticmethod
     def warning():
         return 'Add please some didgit'
 
 
-class IsSymbolExist(ValidatorType):
+class SymbolExistChecker(BaseValidator):
     def validate(self):
-        return True if re.search('[\W]', self.password) else False
+        return bool(re.search('[\W]', self.password))
 
     @staticmethod
     def warning():
         return 'Add please some symbol'
 
 
-class CheckPasswInBadList(ValidatorType):
+class PasswInBadListChecker(BaseValidator):
     def __init__(self, password):
         self.password = password
         self.weight = 2
@@ -132,7 +134,7 @@ class CheckPasswInBadList(ValidatorType):
 
     def validate(self):
         if self.bad_passwords:
-            return True if self.password.lower() not in self.bad_passwords else False
+            return self.password.lower() not in self.bad_passwords
 
     def warning(self):
         if self.bad_passwords:
@@ -144,15 +146,15 @@ class CheckPasswInBadList(ValidatorType):
 def main():
     validator = PasswordValidator(getpass())
     validator.add_validators(
-        IsNotEmpty,
-        IsMinLen,
-        IsGoodLen,
-        IsDuplicateCharacters,
-        IsUpperExist,
-        IsLowerExist,
-        IsDigitExist,
-        IsSymbolExist,
-        CheckPasswInBadList
+        NotEmptyChecker,
+        MinLenChecker,
+        GoodLenChecker,
+        DuplicateCharactersChecker,
+        UpperExistChecker,
+        LowerExistChecker,
+        DigitExistChecker,
+        SymbolExistChecker,
+        PasswInBadListChecker,
     )
     rate = validator.validate()
     print('Your password rate is {}'.format(rate))
