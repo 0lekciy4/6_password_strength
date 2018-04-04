@@ -5,16 +5,11 @@ Example run:
 
 ```bash
 $ python3 password_strength.py
-Password:
-Your password rate is 3
-The password cannot be empty
-The password should be more than 5 symbols
-The password is less than eight characters
-Add please some symbols in upper register
-Add please some symbols in lower register
-Add please some didgit
-Add please some symbol
-
+The password evaluation should be read as follows:
+0 is the lowest rate. We strongly recommend to change a  zero-rated 
+password; 5 is a mediocre rate 10 is the highest rate, meaning your 
+password is strong enough.
+your password rate =  3
 ```
 
 Password is evaluated by:
