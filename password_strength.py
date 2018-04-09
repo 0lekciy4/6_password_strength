@@ -2,6 +2,10 @@ import re
 from getpass import getpass
 
 
+def check_for_empty_password(password: str) -> bool:
+    return bool(password)
+
+
 def check_for_min_len_of_password(password: str, min_len=6) -> bool:
     return len(password) >= min_len
 
@@ -38,29 +42,32 @@ def load_bad_passwords(file_path='bad_passwords.txt'):
         return None
 
 
-def check_if_bad_password(password: str) -> bool:
-    bad_passwords = load_bad_passwords()
+def check_if_bad_password(password: str, bad_passwords: list) -> bool:
     if bad_passwords:
-        return password.lower() not in bad_passwords
+        return 2 if (password.lower() not in bad_passwords) else False
 
 
 def main():
     password = getpass()
-    validators = (check_for_min_len_of_password,
-                  check_for_good_len_of_password,
-                  check_for_same_symbols,
-                  check_for_upper_case,
-                  check_for_lower_case,
-                  check_for_digits,
-                  check_for_symbols,
-                  check_if_bad_password)
-    validators = list(map(lambda check: check(password=password), validators))
+    bad_passwords = load_bad_passwords()
+    checklist = (
+        check_for_empty_password(password),
+        check_for_min_len_of_password(password),
+        check_for_good_len_of_password(password),
+        check_for_same_symbols(password),
+        check_for_upper_case(password),
+        check_for_lower_case(password),
+        check_for_digits(password),
+        check_for_symbols(password),
+        check_if_bad_password(password, bad_passwords)
+    )
+    password_rate = sum(checklist)
     print('The password evaluation should be read as follows:',
           '\n0 is the lowest rate. We strongly recommend to change a ',
           'zero-rated password;\n5 is a mediocre rate',
           '\n10 is the highest rate, meaning your password is strong enough.')
 
-    print('your password rate = ', validators.count(True))
+    print('your password rate = ', password_rate)
 
 
 if __name__ == '__main__':
