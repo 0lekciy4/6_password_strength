@@ -42,9 +42,17 @@ def load_bad_passwords(file_path='bad_passwords.txt'):
         return None
 
 
-def check_if_bad_password(password: str, bad_passwords: list) -> bool:
+def check_if_bad_password(
+                        password: str,
+                        bad_passwords: str,
+                        rate_count: int=2) -> int:
     if bad_passwords:
-        return 2 if (password.lower() not in bad_passwords) else False
+        if password.lower() not in bad_passwords:
+            return rate_count
+        else:
+            return -rate_count
+    else:
+        return False
 
 
 def main():
@@ -59,17 +67,16 @@ def main():
         check_for_lower_case(password),
         check_for_digits(password),
         check_for_symbols(password),
-        check_if_bad_password(password, bad_passwords)
+        check_if_bad_password(password, bad_passwords),
     )
     password_rate = sum(checklist)
+    print(checklist)
     print('The password evaluation should be read as follows:',
-          '\n0 is the lowest rate. We strongly recommend to change a ',
-          'zero-rated password;\n5 is a mediocre rate',
+          '\n1 is the lowest rate. We strongly recommend to change a ',
+          '1 - rated password;\n5 is a mediocre rate',
           '\n10 is the highest rate, meaning your password is strong enough.')
-
     print('your password rate = ', password_rate)
 
 
 if __name__ == '__main__':
     main()
-
